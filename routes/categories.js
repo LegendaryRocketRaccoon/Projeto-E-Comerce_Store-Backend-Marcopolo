@@ -3,6 +3,7 @@ const router = express.Router();
 const { getDB } = require('../config/database');
 const { toObjectId, now, pick } = require('../utils/validators');
 
+
 router.get('/', async (req, res) => {
   try {
     const db = getDB();
@@ -20,6 +21,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+
 router.get('/:id', async (req, res) => {
   try {
     const db = getDB();
@@ -35,6 +37,7 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
 
 router.post('/', async (req, res) => {
   try {
@@ -60,6 +63,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+
 router.patch('/:id', async (req, res) => {
   try {
     const db = getDB();
@@ -77,14 +81,21 @@ router.patch('/:id', async (req, res) => {
     }
     update.updatedAt = now();
 
-    const result = await col.findOneAndUpdate({ _id }, { $set: update }, { returnDocument: 'after' });
-    if (!result.value) return res.status(404).json({ error: 'Categoria não encontrada' });
 
-    res.json(result.value);
+    const updated = await col.findOneAndUpdate(
+      { _id },
+      { $set: update },
+      { returnDocument: 'after' }
+    );
+
+    if (!updated) return res.status(404).json({ error: 'Categoria não encontrada' });
+
+    res.json(updated);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
 
 router.delete('/:id', async (req, res) => {
   try {

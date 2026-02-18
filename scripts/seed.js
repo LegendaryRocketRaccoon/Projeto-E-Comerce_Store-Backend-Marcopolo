@@ -191,7 +191,7 @@ const productTemplates = [
     const productsToInsert = productTemplates.map(p => {
       const categoryId = categoryMap.get(p.categoryName);
       if (!categoryId) {
-        console.warn(`Aviso: categoria '${p.categoryName}' não encontrada para produto '${p.title}'`);
+        console.warn(`Aviso: categoria '${p.categoryName}' não encontrada para produto '${p.title}.'`);
       }
       return {
         title: p.title,
@@ -219,7 +219,7 @@ const productTemplates = [
     for (const cat of categoryDefinitions) {
       const catId = categoryMap.get(cat.name);
       const count = productsToInsert.filter(p => p.category && catId && p.category.equals(catId)).length;
-      console.log(`${cat.name}: ${count} produto(s)`);
+      console.log(`${cat.name}: ${count} produto(s).`);
     }
 
     console.log('\nSeed concluído com sucesso.');

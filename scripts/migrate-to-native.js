@@ -3,7 +3,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI;
 if (!uri) {
-  console.error('❌ MONGODB_URI não definido no .env');
+  console.error('MONGODB_URI não definido no .env');
   process.exit(1);
 }
 

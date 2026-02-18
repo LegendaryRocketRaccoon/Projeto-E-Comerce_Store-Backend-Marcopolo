@@ -48,14 +48,14 @@ const app = express();
     app.use('/products', productRoutes);
     app.use('/categories', categoryRoutes);
 
-    // 404
+
     app.use((req, res) => {
       res.status(404).json({ 
         error: { message: 'Rota não encontrada', status: 404 } 
       });
     });
 
-    // Erros
+
     app.use((err, _req, res, _next) => {
       console.error(err.stack);
       res.status(err.status || 500).json({

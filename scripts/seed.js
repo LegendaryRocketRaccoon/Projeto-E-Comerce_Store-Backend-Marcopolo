@@ -26,7 +26,7 @@ const productTemplates = [
   {
     title: 'Headset',
     price: 299.9,
-    description: 'Headset Gamer com som surround 7.1, microfone com cancelamento de ruído e iluminação RGB.',
+    description: 'Headset Gamer com som surround 7.1, microfone com cancelamento de ruído.',
     categoryName: 'Computer Accessories',
     imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcS-CC1RXXYZ8k5d4MOUIAWdvop8Jxy_iXcfhio5RMM_d45qbnqCZ1ZhzWSk4UgazGVbnWxzenZnlVQh3l2PqUKPNP4KUUZcaiHny_mzo5C7Zt74U0bvo8rg36bLzxvvlx_I2unaFio&usqp=CAc',
     rating: { total: 89, sum: 400.5, avg: 4.5 }
@@ -134,6 +134,14 @@ const productTemplates = [
     categoryName: 'Computer Accessories',
     imageUrl: 'https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRpTIiR5CyEikbv94SnxvLv0TFrqpO7TscixYDjDbbkoSaWYVUJAB828pC7Z1GCXRlNrBnTlBeog0-nPUsQ_NQMXCnIKb5K2w&usqp=CAc',
     rating: { total: 198, sum: 891.0, avg: 4.5 }
+  },
+  {
+    title: 'Chuteira de Campo',
+    price: 140.0,
+    description: 'Chuteira de campo com design ergonômico e materiais resistentes.',
+    categoryName: 'Sports',
+    imageUrl: 'https://a-static.mlcdn.com.br/420x420/chuteira-masculina-de-campo-profissional-sola-costurada-super-resistente-a7/aliciamarchistore/a7-campo03-preto41/be934bebbb784e6c269a67f987d03b3c.jpeg',
+    rating: { total: 89, sum: 400.5, avg: 4.5 }
   }
 ];
 

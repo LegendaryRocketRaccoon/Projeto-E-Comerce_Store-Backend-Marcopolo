@@ -19,7 +19,8 @@ const categoryDefinitions = [
   { name: 'Clothing',             description: 'Roupas e vestuário' },
   { name: 'Books',                description: 'Livros de diversos gêneros' },
   { name: 'Comics',               description: 'Quadrinhos e graphic novels' },
-  { name: 'Collectibles',         description: 'Itens colecionáveis e action figures' }
+  { name: 'Collectibles',         description: 'Itens colecionáveis e action figures' },
+  { name: 'Sports',               description: 'Equipamentos e acessórios esportivos' }
 ];
 
 const productTemplates = [

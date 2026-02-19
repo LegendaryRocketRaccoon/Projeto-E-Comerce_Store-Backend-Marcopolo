@@ -4,11 +4,30 @@ const { getDB } = require('../config/database');
 const { toObjectId, now, pick } = require('../utils/validators');
 
 
+function categoryLookup() {
+  return [
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category'
+      }
+    },
+    {
+      $set: {
+        category: { $arrayElemAt: ['$category', 0] }
+      }
+    }
+  ];
+}
+
+
 router.get('/categories', async (req, res) => {
   try {
     const db = getDB();
-    const col = db.collection('products');
-    const categories = await col.distinct('category');
+    const col = db.collection('categories');
+    const categories = await col.find({}, { projection: { slug: 0 } }).toArray();
     res.json(categories);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -20,28 +39,28 @@ router.get('/category/:category', async (req, res) => {
   try {
     const db = getDB();
     const col = db.collection('products');
-    const { category } = req.params;
     const { sort, limit } = req.query;
 
-    const categoryId = toObjectId(category);
+    const categoryId = toObjectId(req.params.category);
     if (!categoryId) return res.status(400).json({ error: 'ID de categoria inválido' });
 
-    let query = { category: categoryId };
-    let cursor = col.find(query);
+    const pipeline = [
+      { $match: { category: categoryId } },
+      ...categoryLookup()
+    ];
 
     if (sort) {
       const [field, order] = sort.split('_');
-      const safeFields = ['price', 'title'];
-      if (safeFields.includes(field)) {
-        cursor = cursor.sort({ [field]: order === 'desc' ? -1 : 1 });
+      if (['price', 'title'].includes(field)) {
+        pipeline.push({ $sort: { [field]: order === 'desc' ? -1 : 1 } });
       }
     }
 
     if (limit) {
-      cursor = cursor.limit(parseInt(limit, 10));
+      pipeline.push({ $limit: parseInt(limit, 10) });
     }
 
-    const products = await cursor.toArray();
+    const products = await col.aggregate(pipeline).toArray();
     res.json(products);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -55,27 +74,26 @@ router.get('/', async (req, res) => {
     const col = db.collection('products');
     const { search, sort, limit } = req.query;
 
-    let query = {};
+    const pipeline = [];
 
     if (search && search.trim()) {
-      query.title = { $regex: search.trim(), $options: 'i' };
+      pipeline.push({ $match: { title: { $regex: search.trim(), $options: 'i' } } });
     }
 
-    let cursor = col.find(query);
+    pipeline.push(...categoryLookup());
 
     if (sort) {
       const [field, order] = sort.split('_');
-      const safeFields = ['price', 'title'];
-      if (safeFields.includes(field)) {
-        cursor = cursor.sort({ [field]: order === 'desc' ? -1 : 1 });
+      if (['price', 'title'].includes(field)) {
+        pipeline.push({ $sort: { [field]: order === 'desc' ? -1 : 1 } });
       }
     }
 
     if (limit) {
-      cursor = cursor.limit(parseInt(limit, 10));
+      pipeline.push({ $limit: parseInt(limit, 10) });
     }
 
-    const products = await cursor.toArray();
+    const products = await col.aggregate(pipeline).toArray();
     res.json(products);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -91,7 +109,11 @@ router.get('/:id', async (req, res) => {
 
     if (!_id) return res.status(400).json({ error: 'ID inválido' });
 
-    const doc = await col.findOne({ _id });
+    const [doc] = await col.aggregate([
+      { $match: { _id } },
+      ...categoryLookup()
+    ]).toArray();
+
     if (!doc) return res.status(404).json({ error: 'Produto não encontrado' });
 
     res.json(doc);
@@ -133,7 +155,13 @@ router.post('/', async (req, res) => {
     };
 
     const result = await col.insertOne(doc);
-    res.status(201).json({ ...doc, _id: result.insertedId });
+
+    const [created] = await col.aggregate([
+      { $match: { _id: result.insertedId } },
+      ...categoryLookup()
+    ]).toArray();
+
+    res.status(201).json(created);
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -171,7 +199,6 @@ router.patch('/:id', async (req, res) => {
     }
     update.updatedAt = now();
 
-
     const updated = await col.findOneAndUpdate(
       { _id },
       { $set: update },
@@ -180,7 +207,12 @@ router.patch('/:id', async (req, res) => {
 
     if (!updated) return res.status(404).json({ error: 'Produto não encontrado' });
 
-    res.json(updated);
+    const [populated] = await col.aggregate([
+      { $match: { _id } },
+      ...categoryLookup()
+    ]).toArray();
+
+    res.json(populated);
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

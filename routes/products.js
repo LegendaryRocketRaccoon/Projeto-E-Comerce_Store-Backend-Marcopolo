@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { getDB } from '../config/database.js';
+import { toObjectId, now, pick } from '../utils/validators.js';
+
 const router = express.Router();
-const { getDB } = require('../config/database');
-const { toObjectId, now, pick } = require('../utils/validators');
 
 
 function categoryLookup() {
@@ -238,4 +239,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

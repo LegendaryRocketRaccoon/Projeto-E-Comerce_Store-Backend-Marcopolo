@@ -1,79 +1,49 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const { connectDB } = require('./config/database');
-
-const productRoutes = require('./routes/products');
-const categoryRoutes = require('./routes/categories');
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import { connectDB } from './config/database.js';
+import productsRouter from './routes/products.js';
+import categoriesRouter from './routes/categories.js';
 
 dotenv.config();
 
-const app = express();
 
-(async () => {
-  try {
-    await connectDB();
-    
-    app.use(helmet());
-    app.use(cors());
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-    app.use(morgan('dev'));
+async function bootstrap() {
+  const app  = express();
+  const PORT = process.env.PORT || 3000;
 
-    app.get('/', (_req, res) => {
-      res.json({
-        message: 'FakeStore API - Driver mongodb nativo',
-        version: '2.0.0',
-        endpoints: {
-          products: {
-            all: 'GET /products',
-            single: 'GET /products/:id',
-            categories: 'GET /products/categories',
-            byCategory: 'GET /products/category/:category',
-            rate: 'POST /products/:id/rate'
-          },
-          categories: {
-            list: 'GET /categories',
-            detail: 'GET /categories/:id',
-            create: 'POST /categories',
-            update: 'PATCH /categories/:id',
-            delete: 'DELETE /categories/:id'
-          }
-        }
-      });
-    });
-
-    app.use('/products', productRoutes);
-    app.use('/categories', categoryRoutes);
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  }));
+  app.use(express.json());
 
 
-    app.use((req, res) => {
-      res.status(404).json({ 
-        error: { message: 'Rota não encontrada', status: 404 } 
-      });
-    });
+  app.use('/products',   productsRouter);
+  app.use('/categories', categoriesRouter);
 
 
-    app.use((err, _req, res, _next) => {
-      console.error(err.stack);
-      res.status(err.status || 500).json({
-        error: { 
-          message: err.message || 'Erro interno do servidor', 
-          status: err.status || 500 
-        }
-      });
-    });
+  const [
+    { default: authRouter    },
+    { default: cartRouter    },
+    { default: reviewsRouter },
+  ] = await Promise.all([
+    import('./routes/auth.js'),
+    import('./routes/cart.js'),
+    import('./routes/reviews.js'),
+  ]);
 
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
-      console.log(`Ambiente: ${process.env.NODE_ENV}`);
-      console.log(`http://localhost:${PORT}/`);
-    });
-  } catch (e) {
-    console.error('Falha ao iniciar servidor:', e.message);
-    process.exit(1);
-  }
-})();
+  app.use('/auth',    authRouter);
+  app.use('/cart',    cartRouter);
+  app.use('/reviews', reviewsRouter);
+
+  app.get('/health', (_, res) => res.json({ status: 'ok' }));
+
+  await connectDB();
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+bootstrap().catch(err => {
+  console.error('Erro ao iniciar servidor:', err);
+  process.exit(1);
+});
